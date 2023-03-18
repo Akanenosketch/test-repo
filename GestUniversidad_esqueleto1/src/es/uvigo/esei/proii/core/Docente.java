@@ -7,6 +7,7 @@ package es.uvigo.esei.proii.core;
  *
  * @author nrufino
  */
+ //BUENOS DIAS HELLO WORLD
 public class Docente {
 
     private String dni;
