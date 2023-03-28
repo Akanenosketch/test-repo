@@ -78,11 +78,11 @@ public class Universidad {
      * Inserta un nuevo docente.
      *
      * @param p el nuevo objeto Docente
+     * @throws java.lang.Exception
      */
-    public void insertaDocente(Docente p) {
+    public void insertaDocente(Docente p)throws Exception {
         if (getNumDocentes() == docentes.length) {
-            System.err.println("Ya no queda espacio para mas docentes.");
-            System.exit(-1);
+            throw new Exception("\nNo se pueden introducir más docentes en la lista");
         }
         docentes[numDocentes++] = p;
     }

@@ -12,7 +12,7 @@ public class Docente {
     private String dni;
     private String nombre;
     private int despacho;
-    private enum TipoDedicacion{COMPLETA, PARCIAL};
+    private static enum TipoDedicacion{COMPLETA, PARCIAL};
     private TipoDedicacion dedicacion;
 
     /**
@@ -22,14 +22,14 @@ public class Docente {
      * @param dni D.N.I. del docente
      * @param nombre nombre completo del docente
      * @param despacho despacho del docente
-     * @param tipo dedicacion del docente como entero
+     * @param dedicacion dedicacion del docente
      */
     public Docente(String dni, String nombre, int despacho,
-            int tipo) {
+            TipoDedicacion dedicacion) {
         this.setDni(dni);
         this.setNombre(nombre);
         this.setDespacho(despacho);
-        this.setDedicacion(tipo);
+        this.setDedicacion(dedicacion);
     }
 
     /**
@@ -97,13 +97,10 @@ public class Docente {
     /**
      * Cambia la etiqueta dedicacion
      *
-     * @param tipo el nuevo tipo pero con ints
+     * @param dedicacion dedicacion del docente
      */
-    public void setDedicacion(int tipo) { //TODO modificar
-        switch(tipo){
-            case 0 -> this.dedicacion = this.dedicacion.COMPLETA;
-            case 1 -> this.dedicacion = this.dedicacion.PARCIAL;
-        }
+    public void setDedicacion(TipoDedicacion dedicacion) { //TODO modificar
+        this.dedicacion = dedicacion;
     }
 
     @Override
@@ -114,11 +111,7 @@ public class Docente {
         toret.append("\nD.N.I.: ").append(getDni());
         toret.append("\tNombre: ").append(getNombre());
         toret.append("\tDespacho: ").append(getDespacho());
-        if (this.dedicacion.equals(this.dedicacion.COMPLETA)) {
-            toret.append("\tDedicación: tiempo completo");
-        } else if (this.dedicacion.equals(this.dedicacion.PARCIAL)) {
-            toret.append("\tDedicación: tiempo parcial");
-        } 
+        toret.append("\tDedicacion: ").append(getDedicacion().name());
 
         return toret.toString();
     }

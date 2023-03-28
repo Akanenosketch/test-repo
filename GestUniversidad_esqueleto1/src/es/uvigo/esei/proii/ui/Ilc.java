@@ -16,7 +16,7 @@ public class Ilc {
      * Realiza el reparto de la funcionalidad ler = lee, evalua, repite
      */
     public void ler() {
-        int opcion = 0;
+        int opcion;
 
         Universidad coleccion = crearUniversidad();
 
@@ -25,10 +25,14 @@ public class Ilc {
             opcion = menuPrincipal(coleccion);
 
             switch (opcion) {
-                case 1 -> gestionDocentes(coleccion);
-                case 2 -> gestionEstudiantes(coleccion);
-                case 3 -> gestionAsignaturas(coleccion);
-                case 4 -> visualizarUniversidad(coleccion);
+                case 1 ->
+                    gestionDocentes(coleccion);
+                case 2 ->
+                    gestionEstudiantes(coleccion);
+                case 3 ->
+                    gestionAsignaturas(coleccion);
+                case 4 ->
+                    visualizarUniversidad(coleccion);
             }
 
         } while (opcion != 0);
@@ -48,8 +52,7 @@ public class Ilc {
         return new Universidad(nombre, maxDocentes,
                 maxEstudiantes, maxAsignaturas);
     }
-    
-    //AAAAAAAAAAAAAAAAAAAAAAAA
+
     /**
      * Visualiza los datos de la Universidad
      *
@@ -67,7 +70,11 @@ public class Ilc {
      */
     private int menuPrincipal(Universidad coleccion) {
         int toret;
-
+        System.out.println("Datos de la universidad" + coleccion.getNombre());
+        System.out.println("Numero de estudiantes : " + coleccion.getNumEstudiantes());
+        System.out.println("Maxima capacidad de estudiantes : " + coleccion.getMaxEstudiantes());
+        System.out.println("Numero de docentes : " + coleccion.getNumDocentes());
+        System.out.println("Maxima capacidad de docentes : " + coleccion.getMaxDocentes());  //TODO organise this part
         do {
             System.out.println("""
                                
@@ -80,11 +87,6 @@ public class Ilc {
                                4. Listar datos universidad
                                0. Salir
                                """);
-            System.out.println("Numero de estudiantes : " + coleccion.getNumEstudiantes());
-            System.out.println("Maxima capacidad de estudiantes : " + coleccion.getMaxEstudiantes());
-            System.out.println("Numero de docentes : " + coleccion.getNumDocentes());
-            System.out.println("Maxima capacidad de docentes : " + coleccion.getMaxDocentes());  //TODO organise this part
-            
             toret = leeEntero("Selecciona: ");
             if (toret < 0 || toret > 4) {
                 System.out.println("Opción inválida: " + toret + "\n");
@@ -110,11 +112,16 @@ public class Ilc {
         do {
             opcion = menuGestionDocentes();
             switch (opcion) {
-                case 1 -> insertaDocente(coleccion);
-                case 2 -> modificaDocente(coleccion);
-                case 3 -> eliminaDocente(coleccion);
-                case 4 -> listarDocentes(coleccion);
-                case 5 -> System.out.println(listarDocentesDedicacion(coleccion));
+                case 1 ->
+                    insertaDocente(coleccion);
+                case 2 ->
+                    modificaDocente(coleccion);
+                case 3 ->
+                    eliminaDocente(coleccion);
+                case 4 ->
+                    listarDocentes(coleccion);
+                case 5 ->
+                    System.out.println(listarDocentesDedicacion(coleccion));
             }
         } while (opcion != 0);
     }
@@ -158,7 +165,12 @@ public class Ilc {
         System.out.println("\nAlta docente");
 
         Docente p = leeDocente();
-        coleccion.insertaDocente(p);
+        try {
+            coleccion.insertaDocente(p);
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            System.err.println("Docente " + p + " no ha sido registrado");
+        }
     }
 
     /**
@@ -172,21 +184,26 @@ public class Ilc {
         String dni = leeCadena("\tD.N.I.: ");
         String nombre = leeCadena("\tNombre: ");
         int despacho = leeEntero("\tDespacho: ");
-        int dedicacionDocente = leeDedicacionDocente("\nIntroduce el tipo de dedicacion del docente : "
-                                           + "\n\t(0)Completa \n\t(1)Parcial\n");
-       
+
+        Docente.TipoDedicacion dedicacionDocente = leeDedicacionDocente("Dedicacion docente?");
+
         return new Docente(dni, nombre, despacho, dedicacionDocente);
     }
-    
-    public int leeDedicacionDocente(String msg){
-        int opt;
-        do{
-            opt = leeEntero(msg);
-            if(opt!=0&&opt!=1){
-                System.err.println("El valor introducido no es una opción válida");
-            }
-        }while(opt!=0&&opt!=1);
-        return opt;
+
+    public Docente.TipoDedicacion leeDedicacionDocente(String msg) {
+        System.out.println("Tipos de dedicaciones: ");
+        Docente.TipoDedicacion[] dedicaciones = Docente.TipoDedicacion.values();
+        int size = dedicaciones.length;
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < size; i++) {
+            sb.append(i + 1).append(" : ").append(dedicaciones[i]);
+        }
+        int opcion;
+        do {
+            System.out.println(sb);
+            opcion = leeEntero(msg) - 1;
+        } while (opcion < 0 || opcion >= size);
+        return dedicaciones[opcion];
     }
 
     /**
@@ -260,7 +277,10 @@ public class Ilc {
         }
 
         // Dedicacion. ES OBLIGATORIO MODIFICAR (INTRODUCIR) LA DEDICACION
-        
+        String dedicacionActual = p.getDedicacion().name().toLowerCase();
+        Docente.TipoDedicacion dedicacion
+                = leeDedicacionDocente("Nueva dedicacion del docente?(actual = " + dedicacionActual + ")");
+        p.setDedicacion(dedicacion);
     }
 
     /**
@@ -314,24 +334,16 @@ public class Ilc {
      * @return temp message
      */
     public String listarDocentesDedicacion(Universidad coleccion) {
+        Docente.TipoDedicacion tipo = leeDedicacionDocente("tipo dedicacion a listar?");
+        return listarDocentesDedicacion(coleccion, tipo);
+    }
+
+    private String listarDocentesDedicacion(Universidad coleccion, Docente.TipoDedicacion tipo) {
         StringBuilder sb = new StringBuilder();
-        int tipo = leeDedicacionDocente("""
-                                        Introduce el tipo de dedicacion del docente a buscar: 
-                                        \t(0)Completa 
-                                        \t(1)Parcial
-                                        """);
-        String dedicacion = " ";
-        String opt = " ";
-        if(tipo==0){
-            opt = "COMPLETA";
-        }else{
-            opt = "PARCIAL";
-        }
-        
         for (int i = 0; i < coleccion.getNumDocentes(); i++) {
-            dedicacion = coleccion.getDocente(i).getValueDedicacion();
-            if(dedicacion.equals(opt)){
-              sb.append(coleccion.getDocente(i)).append(" \n");  
+            if (coleccion.getDocente(i).getDedicacion().equals(tipo)) {
+                sb.append((i + 1)).append(". \n");
+                sb.append(coleccion.getDocente(i).toString()).append("\n");
             }
         }
         return sb.toString();
@@ -352,11 +364,16 @@ public class Ilc {
         do {
             opcion = menuGestionEstudiantes();
             switch (opcion) {
-                case 1 -> insertaEstudiante(coleccion);
-                case 2 -> modificaEstudiante(coleccion);
-                case 3 -> eliminaEstudiante(coleccion);
-                case 4 -> listarEstudiantes(coleccion);
-                case 5 -> System.out.println(listarEstudiantesErasmus(coleccion));
+                case 1 ->
+                    insertaEstudiante(coleccion);
+                case 2 ->
+                    modificaEstudiante(coleccion);
+                case 3 ->
+                    eliminaEstudiante(coleccion);
+                case 4 ->
+                    listarEstudiantes(coleccion);
+                case 5 ->
+                    System.out.println(listarEstudiantesErasmus(coleccion));
             }
         } while (opcion != 0);
     }
@@ -399,7 +416,12 @@ public class Ilc {
         System.out.println("\nAlta estudiante");
 
         Estudiante a = leeEstudiante();
-        coleccion.insertaEstudiante(a);
+        try {
+            coleccion.insertaEstudiante(a);
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            System.err.println("Estudiante " + a + " no insertado");
+        }
     }
 
     /**
@@ -435,7 +457,7 @@ public class Ilc {
                 System.err.println("Contesta S: si o N: no. "
                         + "Por favor, introdúcela de nuevo.");
             }
-        } while (!esErasmus.equals("S")&& !esErasmus.equals("N"));
+        } while (!esErasmus.equals("S") && !esErasmus.equals("N"));
 
         return esErasmus;
     }
@@ -557,36 +579,35 @@ public class Ilc {
      *
      * @param coleccion La universidad de la que se listan los estudiantes
      * erasmus
-     * @return lista en la que figuran los estudiantes que están dentro del 
+     * @return lista en la que figuran los estudiantes que están dentro del
      * programa erasmus
      */
     public String listarEstudiantesErasmus(Universidad coleccion) {
         final int numEstudiantes = coleccion.getNumEstudiantes();
         boolean esta = false;
         StringBuilder sb = new StringBuilder();
-        if(numEstudiantes > 0){
+        if (numEstudiantes > 0) {
             for (int i = 0; i < numEstudiantes; i++) {
-                if(coleccion.getEstudiante(i).isErasmus()==true){
+                if (coleccion.getEstudiante(i).isErasmus() == true) {
                     esta = true;
                     sb.append(i + 1).append(" . ");
                     sb.append(coleccion.getEstudiante(i).toString());
                     sb.append("\n");
                 }
-                
+
             }
-            if(esta == false){
+            if (esta == false) {
                 sb.append("No hay estudiantes registrados detro del programa Erasmus");
             }
-            
-        }else{
+
+        } else {
             sb.append("No hay estudiantes registrados en la base de datos\n");
         }
         return sb.toString();
     }
-    
+
     //TODO GESTION ASIGNATURAS   
-    
-        /**
+    /**
      * INTERFAZ/LÓGICA/CONTROL ASIGNATURAS *
      */
     /**
@@ -601,10 +622,14 @@ public class Ilc {
         do {
             opcion = menuGestionAsignaturas();
             switch (opcion) {
-                case 1 -> insertaAsignatura(coleccion);
-                case 2 -> modificaAsignatura(coleccion);
-                case 3 -> eliminaAsignatura(coleccion);
-                case 4 -> listarAsignaturas(coleccion);
+                case 1 ->
+                    insertaAsignatura(coleccion);
+                case 2 ->
+                    modificaAsignatura(coleccion);
+                case 3 ->
+                    eliminaAsignatura(coleccion);
+                case 4 ->
+                    listarAsignaturas(coleccion);
             }
         } while (opcion != 0);
     }
@@ -646,7 +671,12 @@ public class Ilc {
         System.out.println("\nRegistro asignatura");
 
         Asignatura a = leeAsignatura();
-        coleccion.insertaAsignatura(a);
+        try {
+            coleccion.insertaAsignatura(a);
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+            System.err.println("Asignatura " + a + " no insertada");
+        }
     }
 
     /**
@@ -660,9 +690,7 @@ public class Ilc {
         int codigo = leeEntero("\tCodigo de la asignatura: ");
         String nombre = leeCadena("\tNombre de la asignatura: ");
 
-        
-        int tipoAsignatura =leeTipoAsignatura("\nEs una asignatura \n(0)Basica?\n(1)Obligatoria?\n(2)Optativa? \n");
-        
+        int tipoAsignatura = leeTipoAsignatura("\nEs una asignatura \n(0)Basica?\n(1)Obligatoria?\n(2)Optativa? \n");
 
         return new Asignatura(codigo, nombre, tipoAsignatura);
     }
@@ -678,11 +706,11 @@ public class Ilc {
         do {
             tipo = Integer.parseInt(leeCadena(msg));
 
-            if (tipo!=0 && tipo != 1 && tipo != 2) {
+            if (tipo != 0 && tipo != 1 && tipo != 2) {
                 System.err.println("Contesta 0: Basica 1:Obligatoria 2: Optativa "
                         + "Por favor, introdúcela de nuevo.");
             }
-        } while (tipo!=0 && tipo != 1 && tipo != 2);
+        } while (tipo != 0 && tipo != 1 && tipo != 2);
 
         return tipo;
     }
@@ -726,7 +754,7 @@ public class Ilc {
 
         // Codigo
         System.out.print("Codigo de la asignatura ");
-        if (a.getCodigo()> 0) {
+        if (a.getCodigo() > 0) {
             System.out.print("[" + a.getCodigo() + "]");
             vacio = true;
         }
